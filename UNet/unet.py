@@ -4,10 +4,15 @@ import torch
 from torch import nn
 import logging
 import time
+from utils import *
+from torch.utils.data import DataLoader
+from torch import optim
+from sklearn import metrics
 
 batch_size=4
 epochs=100
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+learning_rate=5e-4
 
 def get_logger():
    filename = 'log/'+time.asctime(time.localtime(time.time())).replace(" ", "_").replace(":", "_")
@@ -18,6 +23,14 @@ def get_logger():
       format='%(asctime)s:%(levelname)s:%(message)s'
    )
    return logging
+
+
+class V_rand_loss():
+    def __init__(self,):
+        self.loss=metrics.adjusted_rand_score
+
+    def forward(self,y_true,y_pred):
+        return self.loss(y_true,y_pred)
 
 
 class DownsampleLayer(nn.Module):
@@ -119,6 +132,16 @@ class UNet(nn.Module):
         return out
 
 
+def load_dataset():
+    train = ISBIdataset()
+    train_loader = DataLoader(train,batch_size=batch_size)
+    validation = ISBIdataset()
+    validation_loader = DataLoader(validation, batch_size=batch_size)
+    test = ISBIdataset()
+    test_loader = DataLoader(test,batch_size=batch_size)
+    return train_loader,validation_loader,test_loader
+
+
 def train():
     pass
 
@@ -131,11 +154,12 @@ def test():
 if __name__ == "__main__":
     logger=get_logger()
     logging.info('=======epoch:%s, batch size:%s ========' %(str(epochs), str(batch_size)))
-
-    logger.info("Preparing for dataset")
-
-    logger.info("Start Training")
-
-    logger.info("Start Validation")
-
+    logger.info("Preparing for dataset and model")
+    model=UNet().to(device)
+    train_loader,validation_loader,test_loader=load_dataset()
+    optimizer = optim.Adam(model.parameters(),lr=learning_rate)
+    criterion=V_rand_loss()
+    logger.info("Start Training and Validation")
+    train()
     logger.info("Start Testing")
+    test()
