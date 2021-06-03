@@ -2,3 +2,34 @@
 Image segmentation is the process of assigning a label to every pixel in an image such that pixels with the same label share certain visual characteristics. In this project, we try to solve the problem in ISBI challenge.  In this challenge, a full stack of EM slices will be used to train machine learning algorithms for the purpose of automatic segmentation of neural structures.
 
 The images are representative of actual images in the real-world, containing some noise and small image alignment errors. None of these problems led to any difficulties in the manual labeling of each element in the image stack by an expert human neuroanatomist. The aim of the challenge is to compare and rank the different competing methods based on their pixel and object classification accuracy.
+
+# Dataset
+The data description is same with ISBI Challenge except that we split the raw train data set (consist of 30 samples) into two parts: the new train set and new
+test set. The downloaded data set consists of 30 samples, 25 for train and 5 for test. We simply train our model on the newly split data sets and did not use pre-training models. 
+
+Here are one example for training data (raw image and corresponding label):
+
+<table>
+  <tr>
+    <td><img src="/dataset/train_img/0.png" width=270 height=270></td>
+    <td><img src="/dataset/train_label/0.png" width=270 height=270></td>
+  </tr>
+ </table>
+
+
+Here are one example for test data (raw image and corresponding label):
+<table>
+  <tr>
+    <td><img src="/dataset/test_img/0.png" width=270 height=270></td>
+    <td><img src="/dataset/test_label/0.png" width=270 height=270></td>
+  </tr>
+ </table>
+
+
+
+# Group Members
+Shiqu Wu
+
+Shengyuan Hou
+
+Binghao Yan
