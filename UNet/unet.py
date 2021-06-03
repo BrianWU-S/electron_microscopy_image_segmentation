@@ -8,11 +8,16 @@ from utils import *
 from torch.utils.data import DataLoader
 from torch import optim
 from sklearn import metrics
+import numpy as np
+from torch.autograd import Variable
+import os
 
 batch_size=4
 epochs=100
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 learning_rate=5e-4
+log_dir = os.path.join('log', time.asctime(time.localtime(time.time()))).replace(" ", "_").replace(":", "_")
+log=open(os.path.join(log_dir, 'log.txt'), 'a+')
 
 def get_logger():
    filename = 'log/'+time.asctime(time.localtime(time.time())).replace(" ", "_").replace(":", "_")
@@ -134,32 +139,63 @@ class UNet(nn.Module):
 
 def load_dataset():
     train = ISBIdataset()
-    train_loader = DataLoader(train,batch_size=batch_size)
+    train_generator = DataLoader(train,batch_size=batch_size)
     validation = ISBIdataset()
-    validation_loader = DataLoader(validation, batch_size=batch_size)
+    validation_generator = DataLoader(validation, batch_size=batch_size)
     test = ISBIdataset()
-    test_loader = DataLoader(test,batch_size=batch_size)
-    return train_loader,validation_loader,test_loader
+    test_generator = DataLoader(test,batch_size=batch_size)
+    return train_generator,validation_generator,test_generator
 
-
-def train():
+def test(test_gernator,model):
     pass
 
-def val():
+
+def val(val_generator,model):
     pass
 
-def test():
-    pass
+
+def train(model,criterion,optimizer,train_generator,val_generator,epoch):
+    train_rand, train_info, train_acc, train_loss = [], [], [], []
+    val_rand, val_info, val_acc, val_loss = [], [], [], []
+    for epo in range(epoch):
+        model=model.train()
+        loss_val = 0
+        start = time.time()
+        for i, (d, p, label) in enumerate(train_generator):
+            p = p.float().to(device)
+            pred = model(d, p)
+            label = Variable(torch.from_numpy(np.array(label)).long()).to(device)
+            loss = criterion(pred, label)
+            loss_val += loss.item() * label.size(0)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        train_loss.append(loss_val)
+        end = time.time()
+        print(' Epoch: ' + str(epo + 1) + '  Loss ' + str(loss_val) + ". Consumed Time " + str(int(end - start) / 60) + " mins", file=log, flush=True)
+        model=model.eval()
+        with torch.no_grad():
+            accuracy, rand, info = test(train_generator, model)
+            print('Training at Epoch ' + str(epo + 1) + ', Accuracy: ' + str(accuracy) + ', V_rand: ' + str(rand) + ', V_info: ' + str(info),file=log,flush=True)
+            train_acc.append(accuracy)
+            train_rand.append(rand)
+            train_info.append(info)
+            accuracy, rand, info = test(val_generator, model)
+            print('Validation at Epoch ' + str(epo + 1) + ', Accuracy: ' + str(accuracy) + ', V_rand: ' + str(rand) + ', V_info: ' + str(info),file=log, flush=True)
+            val_acc.append(accuracy)
+            val_rand.append(rand)
+            val_info.append(info)
+    torch.save(model, log_dir + '/model.h5')
 
 if __name__ == "__main__":
     logger=get_logger()
     logging.info('=======epoch:%s, batch size:%s ========' %(str(epochs), str(batch_size)))
     logger.info("Preparing for dataset and model")
     model=UNet().to(device)
-    train_loader,validation_loader,test_loader=load_dataset()
+    train_generator,validation_generator,test_generator=load_dataset()
     optimizer = optim.Adam(model.parameters(),lr=learning_rate)
-    criterion=V_rand_loss()
+    criterion=torch.nn.BCELoss()
     logger.info("Start Training and Validation")
-    train()
+    train(model,criterion,optimizer,train_generator,validation_generator,epochs)
     logger.info("Start Testing")
     test()
