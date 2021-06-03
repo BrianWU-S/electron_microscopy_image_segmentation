@@ -18,7 +18,12 @@ Here are one example for training data (raw image and corresponding label):
 
 
 Here are one example for test data (raw image and corresponding label):
-![test-sample](/dataset/test_img/0.png) ![test-label](/dataset/test_label/0.png) 
+<table>
+  <tr>
+    <td><img src="/dataset/test_img/0.png" width=270 height=270></td>
+    <td><img src="/dataset/test_label/0.png" width=270 height=270></td>
+  </tr>
+ </table>
 
 
 
