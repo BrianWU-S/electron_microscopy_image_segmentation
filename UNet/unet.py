@@ -146,11 +146,11 @@ def load_dataset():
     test_generator = DataLoader(test,batch_size=batch_size)
     return train_generator,validation_generator,test_generator
 
-def test(test_gernator,model):
+def test(model,criterion,test_gernator,save_predict=True):
     pass
 
 
-def val(val_generator,model):
+def val(model,val_generator):
     pass
 
 
@@ -172,20 +172,21 @@ def train(model,criterion,optimizer,train_generator,val_generator,epoch):
             optimizer.step()
         train_loss.append(loss_val)
         end = time.time()
-        print(' Epoch: ' + str(epo + 1) + '  Loss ' + str(loss_val) + ". Consumed Time " + str(int(end - start) / 60) + " mins", file=log, flush=True)
+        logger.info(' Epoch: ' + str(epo + 1) + '  Loss ' + str(loss_val) + ". Consumed Time " + str(int(end - start) / 60) + " mins", file=log, flush=True)
         model=model.eval()
         with torch.no_grad():
-            accuracy, rand, info = test(train_generator, model)
-            print('Training at Epoch ' + str(epo + 1) + ', Accuracy: ' + str(accuracy) + ', V_rand: ' + str(rand) + ', V_info: ' + str(info),file=log,flush=True)
+            accuracy, rand, info = val(model,train_generator)
+            logger.info('Training at Epoch ' + str(epo + 1) + ', Accuracy: ' + str(accuracy) + ', V_rand: ' + str(rand) + ', V_info: ' + str(info),file=log,flush=True)
             train_acc.append(accuracy)
             train_rand.append(rand)
             train_info.append(info)
-            accuracy, rand, info = test(val_generator, model)
-            print('Validation at Epoch ' + str(epo + 1) + ', Accuracy: ' + str(accuracy) + ', V_rand: ' + str(rand) + ', V_info: ' + str(info),file=log, flush=True)
+            accuracy, rand, info = val(model,val_generator)
+            logger.info('Validation at Epoch ' + str(epo + 1) + ', Accuracy: ' + str(accuracy) + ', V_rand: ' + str(rand) + ', V_info: ' + str(info),file=log, flush=True)
             val_acc.append(accuracy)
             val_rand.append(rand)
             val_info.append(info)
     torch.save(model, log_dir + '/model.h5')
+
 
 if __name__ == "__main__":
     logger=get_logger()
@@ -198,4 +199,4 @@ if __name__ == "__main__":
     logger.info("Start Training and Validation")
     train(model,criterion,optimizer,train_generator,validation_generator,epochs)
     logger.info("Start Testing")
-    test()
+    test(model,criterion,test_generator,save_predict=True)
