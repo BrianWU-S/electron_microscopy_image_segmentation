@@ -1,7 +1,19 @@
-# Electron_Microscopy_Image_Segmentation
-Image segmentation is the process of assigning a label to every pixel in an image such that pixels with the same label share certain visual characteristics. In this project, we try to solve the problem in ISBI challenge.  In this challenge, a full stack of EM slices will be used to train machine learning algorithms for the purpose of automatic segmentation of neural structures.
+# Electron Microscopy Image Segmentation
+Image segmentation is the process of assigning a label to every pixel 
+in an image such that pixels with the same label share certain visual characteristics. 
+In this project, we try to solve the problem in ISBI challenge where a full stack of EM slices will be used to train 
+machine learning algorithms for the purpose of automatic segmentation of neural structures.
+The images are representative of actual images in the real-world, containing some noise and small image alignment errors. 
+None of these problems led to any difficulties in the manual labeling of each element in the image stack by an expert 
+human neuroanatomist. 
 
-The images are representative of actual images in the real-world, containing some noise and small image alignment errors. None of these problems led to any difficulties in the manual labeling of each element in the image stack by an expert human neuroanatomist. The aim of the challenge is to compare and rank the different competing methods based on their pixel and object classification accuracy.
+The aim of the challenge is to compare and rank the different competing methods based on their
+pixel and object classification accuracy. The accuracy of segmentation is very important for medical images, because 
+the edge segmentation error 
+will lead to unreliable results, in that case it will be rejected for clinical application.
+Obtaining these sample images to train the model may be a resource consuming process because of the need for high-quality, 
+uncompressed and accurately annotated images reviewed by professionals.
+Therefore, the algorithm designed for medical imaging must achieve high performance and accuracy with less data samples.
 
 # Dataset
 The data description is same with ISBI Challenge except that we split the raw train data set (consist of 30 samples) into two parts: the new train set and new
@@ -54,9 +66,22 @@ In this task, we implemented
 - [CE-Net](https://arxiv.org/pdf/1903.02740.pdf)
 
 And here are some useful links for understanding the model:
+
 [Difference between U-Net and U-Net++](
 https://sh-tsang.medium.com/review-unet-a-nested-u-net-architecture-biomedical-image-segmentation-57be56859b20)
 
+[U-Net++ in medical image segmentation](https://www.yinxiang.com/everhub/note/d01d5753-28f8-4649-94e0-a810e8bee795)
+
+[What's new in CENet compared with U-Net](https://zhuanlan.zhihu.com/p/273416963)
+
+
+
+### Unet ++
+UNet++的目标是通过在编码器和解码器之间加入Dense block和卷积层来提高分割精度。
+
+在这个task中，分割的准确性对于医学图像至关重要，因为边缘分割错误会导致不可靠的结果，从而被拒绝用于临床中。
+而获取这些样本图像来训练模型可能是一个消耗资源的过程，因为需要由专业人员审查的高质量、未压缩和精确注释的图像。 
+因此为医学成像设计的算法必须在数据样本较少的情况下实现高性能和准确性。
 
 
 ## Requirements
@@ -77,7 +102,6 @@ Shiqu Wu
 Shengyuan Hou
 
 Binghao Yan
-
 
 
 
