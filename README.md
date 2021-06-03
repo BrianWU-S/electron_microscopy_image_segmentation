@@ -75,15 +75,6 @@ https://sh-tsang.medium.com/review-unet-a-nested-u-net-architecture-biomedical-i
 [What's new in CENet compared with U-Net](https://zhuanlan.zhihu.com/p/273416963)
 
 
-
-### Unet ++
-UNet++的目标是通过在编码器和解码器之间加入Dense block和卷积层来提高分割精度。
-
-在这个task中，分割的准确性对于医学图像至关重要，因为边缘分割错误会导致不可靠的结果，从而被拒绝用于临床中。
-而获取这些样本图像来训练模型可能是一个消耗资源的过程，因为需要由专业人员审查的高质量、未压缩和精确注释的图像。 
-因此为医学成像设计的算法必须在数据样本较少的情况下实现高性能和准确性。
-
-
 ## Requirements
 
 - `python 3.6+`
