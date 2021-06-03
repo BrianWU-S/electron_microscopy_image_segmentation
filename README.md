@@ -10,9 +10,17 @@ test set. The downloaded data set consists of 30 samples, 25 for train and 5 for
 Here are one example for training data (raw image and corresponding label):
 
 <!-- ![training-sample](/dataset/train_img/0.png) ![training-label](/dataset/train_label/0.png)  -->
-![training-sample](/dataset/train_img/0.png width="200" height="200") ![training-label](/dataset/train_label/0.png width="200" height="200")
+<!-- ![training-sample](/dataset/train_img/0.png width="200" height="200") ![training-label](/dataset/train_label/0.png width="200" height="200") -->
 <!-- <img align="left" width="400" height="400" src="/dataset/train_img/0.png">
 <img align="right" width="400" height="400" src="/dataset/train_label/0.png"> -->
+
+<table>
+  <tr>
+    <td><img src="/dataset/train_img/0.png" width=270 height=270td>
+    <td><img src="/dataset/train_label/0.png" width=270 height=270td>
+  </tr>
+ </table>
+
 
 Here are one example for test data (raw image and corresponding label):
 ![test-sample](/dataset/test_img/0.png) ![test-label](/dataset/test_label/0.png) 
