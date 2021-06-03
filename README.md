@@ -5,7 +5,9 @@ The images are representative of actual images in the real-world, containing som
 
 # Dataset
 The data description is same with ISBI Challenge except that we split the raw train data set (consist of 30 samples) into two parts: the new train set and new
-test set. The downloaded data set consists of 30 samples, 25 for train and 5 for test. We simply train our model on the newly split data sets and did not use pre-training models. Here are one example for training data:
+test set. The downloaded data set consists of 30 samples, 25 for train and 5 for test. We simply train our model on the newly split data sets and did not use pre-training models. 
+
+Here are one example for training data:
 ![training-sample](/dataset/train_img/0.png)
 
 
