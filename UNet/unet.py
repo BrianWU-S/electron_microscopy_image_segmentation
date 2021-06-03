@@ -147,16 +147,27 @@ def load_dataset():
     return train_generator,validation_generator,test_generator
 
 def test(model,criterion,test_gernator,save_predict=True):
+    model = model.eval()
     pass
 
 
-def val(model,val_generator):
-    pass
+def val(model,val_generator,epoch):
+    model = model.eval()
+    accuracy, rand, info = None,None ,None
+    with torch.no_grad():
+        acc = 0
+        rand = 0
+        info = 0
+        for (x,y) in val_generator:
+            x = x.to(device)
+            y = model(x)
+            img_y = torch.squeeze(y[-1]).cpu().numpy()
+
+    logger.info('Training at Epoch ' + str(epoch + 1) + ', Accuracy: ' + str(accuracy) + ', V_rand: ' + str(rand) + ', V_info: ' + str(info), file=log, flush=True)
 
 
 def train(model,criterion,optimizer,train_generator,val_generator,epoch):
-    train_rand, train_info, train_acc, train_loss = [], [], [], []
-    val_rand, val_info, val_acc, val_loss = [], [], [], []
+    train_loss = []
     for epo in range(epoch):
         model=model.train()
         loss_val = 0
@@ -173,18 +184,8 @@ def train(model,criterion,optimizer,train_generator,val_generator,epoch):
         train_loss.append(loss_val)
         end = time.time()
         logger.info(' Epoch: ' + str(epo + 1) + '  Loss ' + str(loss_val) + ". Consumed Time " + str(int(end - start) / 60) + " mins", file=log, flush=True)
-        model=model.eval()
-        with torch.no_grad():
-            accuracy, rand, info = val(model,train_generator)
-            logger.info('Training at Epoch ' + str(epo + 1) + ', Accuracy: ' + str(accuracy) + ', V_rand: ' + str(rand) + ', V_info: ' + str(info),file=log,flush=True)
-            train_acc.append(accuracy)
-            train_rand.append(rand)
-            train_info.append(info)
-            accuracy, rand, info = val(model,val_generator)
-            logger.info('Validation at Epoch ' + str(epo + 1) + ', Accuracy: ' + str(accuracy) + ', V_rand: ' + str(rand) + ', V_info: ' + str(info),file=log, flush=True)
-            val_acc.append(accuracy)
-            val_rand.append(rand)
-            val_info.append(info)
+        val(model,train_generator,epoch)
+        val(model,val_generator,epoch)
     torch.save(model, log_dir + '/model.h5')
 
 
