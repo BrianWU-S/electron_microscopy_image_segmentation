@@ -141,33 +141,46 @@ def load_dataset():
     train = ISBIdataset()
     train_generator = DataLoader(train,batch_size=batch_size)
     validation = ISBIdataset()
-    validation_generator = DataLoader(validation, batch_size=batch_size)
+    validation_generator = DataLoader(validation, batch_size=1)
     test = ISBIdataset()
-    test_generator = DataLoader(test,batch_size=batch_size)
+    test_generator = DataLoader(test,batch_size=1)
     return train_generator,validation_generator,test_generator
+
+
+def compute_metrics(image,predict):
+    acc,rand,info=None,None,None
+    return acc,rand,info
+
 
 def test(model,criterion,test_gernator,save_predict=True):
     model = model.eval()
     pass
 
 
-def val(model,val_generator,epoch):
+def val(model,val_generator,epoch,best_rand=None,isval=True):
     model = model.eval()
-    accuracy, rand, info = None,None ,None
+    total_acc=0;total_rand=0;total_info=0
     with torch.no_grad():
-        acc = 0
-        rand = 0
-        info = 0
         for (x,y) in val_generator:
             x = x.to(device)
             y = model(x)
             img_y = torch.squeeze(y[-1]).cpu().numpy()
-
-    logger.info('Training at Epoch ' + str(epoch + 1) + ', Accuracy: ' + str(accuracy) + ', V_rand: ' + str(rand) + ', V_info: ' + str(info), file=log, flush=True)
+            acc,rand,info=compute_metrics(x,img_y)
+            total_acc+=acc
+            total_rand+=rand
+            total_info+=info
+    if isval==True and best_rand<total_rand/len(val_generator):
+        best_rand=total_rand/len(val_generator)
+    logger.info('Training at Epoch ' + str(epoch + 1) +
+                ', Accuracy: ' + str(total_acc/len(val_generator)) +
+                ', V_rand: ' + str(total_rand/len(val_generator)) +
+                ', V_info: ' + str(total_info/len(val_generator)), file=log, flush=True)
+    return best_rand,total_acc/len(val_generator),total_rand/len(val_generator),total_info/len(val_generator)
 
 
 def train(model,criterion,optimizer,train_generator,val_generator,epoch):
     train_loss = []
+    best_rand=0
     for epo in range(epoch):
         model=model.train()
         loss_val = 0
@@ -184,8 +197,8 @@ def train(model,criterion,optimizer,train_generator,val_generator,epoch):
         train_loss.append(loss_val)
         end = time.time()
         logger.info(' Epoch: ' + str(epo + 1) + '  Loss ' + str(loss_val) + ". Consumed Time " + str(int(end - start) / 60) + " mins", file=log, flush=True)
-        val(model,train_generator,epoch)
-        val(model,val_generator,epoch)
+        val(model,train_generator,epoch,isval=False)
+        best_rand,acc,rand,info=val(model,val_generator,best_rand,epoch)
     torch.save(model, log_dir + '/model.h5')
 
 
