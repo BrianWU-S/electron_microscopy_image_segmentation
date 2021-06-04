@@ -11,6 +11,8 @@ from sklearn import metrics
 import numpy as np
 from torch.autograd import Variable
 import os
+import cv2
+from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img,save_img
 
 batch_size=4
 epochs=100
@@ -138,23 +140,68 @@ class UNet(nn.Module):
 
 
 def load_dataset():
-    train = ISBIdataset()
-    train_generator = DataLoader(train,batch_size=batch_size)
-    validation = ISBIdataset()
-    validation_generator = DataLoader(validation, batch_size=1)
-    test = ISBIdataset()
-    test_generator = DataLoader(test,batch_size=1)
+    train,validation,test = ISBIdataset()
+    train_generator = DataLoader(train,batch_size=batch_size,shuffle=False)
+    validation_generator = DataLoader(validation, batch_size=1,shuffle=False)
+    test_generator = DataLoader(test,batch_size=1,shuffle=False)
     return train_generator,validation_generator,test_generator
 
 
-def compute_metrics(image,predict):
-    acc,rand,info=None,None,None
-    return acc,rand,info
+def compute_metrics(ground,predict,reverse=False):
+    acc,v_rand,v_info=None,None,None
+    # pred, gt are both numpy arrays, both of which predicts edges as "1"
+    if reverse:
+        pred_label = (predict < 0.5).astype(np.uint8)
+        gt_label = (ground < 0.5).astype(np.uint8)
+    else:
+        pred_label = (predict > 0.5).astype(np.uint8)
+        gt_label = (ground > 0.5).astype(np.uint8)
+    pred_num, pred_out = cv2.connectedComponents(pred_label, connectivity=4)
+    gt_num, gt_out = cv2.connectedComponents(gt_label, connectivity=4)
+    p = np.zeros((pred_num+1, gt_num+1))
+    for i in range(pred_num+1):
+        tmp_mask = (pred_out==i)
+        for j in range(gt_num+1):
+            if i==0 or j==0:
+                p[i][j]=0
+            else:
+                p[i][j] = np.logical_and(tmp_mask, gt_out==j).sum()
+    #normalize
+    tot_sum = p.sum()
+    p = p / tot_sum
+    #marginal distribution
+    s = p.sum(axis=0)
+    t = p.sum(axis=1)
+    #entropy
+    sum_p_log = (p * np.log(p+1e-9)).sum()
+    sum_s_log = (s * np.log(s+1e-9)).sum()
+    sum_t_log = (t * np.log(t+1e-9)).sum()
+    v_info = -2 * (sum_p_log - sum_s_log - sum_t_log) / (sum_s_log  + sum_t_log)
+    sum_p_s = (p*p).sum()
+    sum_s_s = (s*s).sum()
+    sum_t_s = (t*t).sum()
+    v_rand = 2 * sum_p_s / (sum_t_s + sum_s_s)
+    return acc,v_rand,v_info
 
 
-def test(model,criterion,test_gernator,save_predict=True):
+def test(model,test_generator,save_predict=True):
     model = model.eval()
-    pass
+    total_acc = 0;total_rand = 0;total_info = 0
+    with torch.no_grad():
+        for (x,y) in test_generator:
+            x = x.to(device)
+            y = model(x)
+            img_y = torch.squeeze(y[-1]).cpu().numpy()
+            if save_predict == True:
+                save_img(os.path.join("predict_result",""))
+            acc,rand,info=compute_metrics(x,img_y)
+            total_acc+=acc
+            total_rand+=rand
+            total_info+=info
+    logger.info('Testing: Accuracy: ' + str(total_acc / len(test_generator)) +
+                ', V_rand: ' + str(total_rand / len(test_generator)) +
+                ', V_info: ' + str(total_info / len(test_generator)), file=log, flush=True)
+    return total_acc / len(test_generator), total_rand / len(test_generator), total_info / len(test_generator)
 
 
 def val(model,val_generator,epoch,best_rand=None,isval=True):
@@ -213,4 +260,4 @@ if __name__ == "__main__":
     logger.info("Start Training and Validation")
     train(model,criterion,optimizer,train_generator,validation_generator,epochs)
     logger.info("Start Testing")
-    test(model,criterion,test_generator,save_predict=True)
+    test(model,test_generator,save_predict=True)
