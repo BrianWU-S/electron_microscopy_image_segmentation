@@ -1,5 +1,6 @@
 #!/usr/bin/env python 
 # -*- coding:utf-8 -*-
+import glob
 import torch
 from torch import nn
 import logging
@@ -11,18 +12,56 @@ from sklearn import metrics
 import numpy as np
 from torch.autograd import Variable
 import os
-import cv2
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img,save_img
+from torch.utils.data import DataLoader,Dataset
+from torchvision.transforms import transforms
+from sklearn.model_selection import train_test_split
 
-batch_size=4
-epochs=100
+batch_size=1
+epochs=15
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 learning_rate=5e-4
 log_dir = os.path.join('log', time.asctime(time.localtime(time.time()))).replace(" ", "_").replace(":", "_")
+os.mkdir(log_dir)
 log=open(os.path.join(log_dir, 'log.txt'), 'a+')
 
+
+class ISBIdataset(Dataset):
+    def __init__(self,state):
+        self.state = state
+        self.img_paths=("../dataset/aug" if self.state=="train" or self.state=="validation" else "../dataset/test_img")
+        self.label_paths=("../dataset/aug_lb" if self.state=="train" or self.state=="validation" else "../dataset/test_label")
+        self.data,self.label=None, None
+        self.img_name=os.listdir(self.img_paths)
+        self.label_name=os.listdir(self.label_paths)
+
+    def __len__(self):
+        if self.state=="train":
+            return len(self.img_name)*0.9
+        elif self.state=="validation":
+            return len(self.img_name)*0.1
+        else:
+            return len(self.img_name)
+
+    def __getitem__(self, index):
+        if self.state == "validation":
+            img_path = os.path.join(self.img_paths, self.img_name[index +len(self.img_name)*0.9])
+            label_path = os.path.join(self.img_paths, self.label_name[index +len(self.img_name)*0.9])
+        else:
+            img_path = os.path.join(self.img_paths, self.img_name[index])
+            label_path = os.path.join(self.img_paths, self.label_name[index])
+        img = cv2.imread(img_path)
+        label = cv2.imread(label_path, cv2.COLOR_BGR2GRAY)
+        img = img.astype('float32') / 255
+        label = label.astype('float32') / 255
+        if self.state=="test":
+            return img, label, self.img_name[index]
+        else:
+            return img, label
+
+
 def get_logger():
-   filename = 'log/'+time.asctime(time.localtime(time.time())).replace(" ", "_").replace(":", "_")
+   filename = 'log/'+time.asctime(time.localtime(time.time())).replace(" ", "_").replace(":", "_")+"/log.txt"
    logging.basicConfig(
       filename=filename,
       filemode='w+',
@@ -140,61 +179,26 @@ class UNet(nn.Module):
 
 
 def load_dataset():
-    train,validation,test = ISBIdataset()
+    train = ISBIdataset("train")
+    validation = ISBIdataset("validation")
+    test = ISBIdataset("test")
     train_generator = DataLoader(train,batch_size=batch_size,shuffle=False)
     validation_generator = DataLoader(validation, batch_size=1,shuffle=False)
     test_generator = DataLoader(test,batch_size=1,shuffle=False)
     return train_generator,validation_generator,test_generator
 
 
-def compute_metrics(ground,predict,reverse=False):
-    acc,v_rand,v_info=None,None,None
-    # pred, gt are both numpy arrays, both of which predicts edges as "1"
-    if reverse:
-        pred_label = (predict < 0.5).astype(np.uint8)
-        gt_label = (ground < 0.5).astype(np.uint8)
-    else:
-        pred_label = (predict > 0.5).astype(np.uint8)
-        gt_label = (ground > 0.5).astype(np.uint8)
-    pred_num, pred_out = cv2.connectedComponents(pred_label, connectivity=4)
-    gt_num, gt_out = cv2.connectedComponents(gt_label, connectivity=4)
-    p = np.zeros((pred_num+1, gt_num+1))
-    for i in range(pred_num+1):
-        tmp_mask = (pred_out==i)
-        for j in range(gt_num+1):
-            if i==0 or j==0:
-                p[i][j]=0
-            else:
-                p[i][j] = np.logical_and(tmp_mask, gt_out==j).sum()
-    #normalize
-    tot_sum = p.sum()
-    p = p / tot_sum
-    #marginal distribution
-    s = p.sum(axis=0)
-    t = p.sum(axis=1)
-    #entropy
-    sum_p_log = (p * np.log(p+1e-9)).sum()
-    sum_s_log = (s * np.log(s+1e-9)).sum()
-    sum_t_log = (t * np.log(t+1e-9)).sum()
-    v_info = -2 * (sum_p_log - sum_s_log - sum_t_log) / (sum_s_log  + sum_t_log)
-    sum_p_s = (p*p).sum()
-    sum_s_s = (s*s).sum()
-    sum_t_s = (t*t).sum()
-    v_rand = 2 * sum_p_s / (sum_t_s + sum_s_s)
-    return acc,v_rand,v_info
-
-
 def test(model,test_generator,save_predict=True):
     model = model.eval()
     total_acc = 0;total_rand = 0;total_info = 0
     with torch.no_grad():
-        for (x,y) in test_generator:
+        for i,(x,label,name) in enumerate(test_generator):
             x = x.to(device)
             y = model(x)
             img_y = torch.squeeze(y[-1]).cpu().numpy()
             if save_predict == True:
-                save_img(os.path.join("predict_result",""))
-            acc,rand,info=compute_metrics(x,img_y)
+                save_img(os.path.join("predict_result",name),img_y)
+            acc,rand,info=compute_metrics(img_y,label)
             total_acc+=acc
             total_rand+=rand
             total_info+=info
@@ -208,11 +212,11 @@ def val(model,val_generator,epoch,best_rand=None,isval=True):
     model = model.eval()
     total_acc=0;total_rand=0;total_info=0
     with torch.no_grad():
-        for (x,y) in val_generator:
+        for i,(x,label) in enumerate(val_generator):
             x = x.to(device)
             y = model(x)
             img_y = torch.squeeze(y[-1]).cpu().numpy()
-            acc,rand,info=compute_metrics(x,img_y)
+            acc,rand,info=compute_metrics(img_y,label)
             total_acc+=acc
             total_rand+=rand
             total_info+=info
@@ -232,11 +236,11 @@ def train(model,criterion,optimizer,train_generator,val_generator,epoch):
         model=model.train()
         loss_val = 0
         start = time.time()
-        for i, (d, p, label) in enumerate(train_generator):
-            p = p.float().to(device)
-            pred = model(d, p)
+        for i, (x,label) in enumerate(train_generator):
+            x = x.float().to(device)
+            y = model(x)
             label = Variable(torch.from_numpy(np.array(label)).long()).to(device)
-            loss = criterion(pred, label)
+            loss = criterion(y, label)
             loss_val += loss.item() * label.size(0)
             optimizer.zero_grad()
             loss.backward()

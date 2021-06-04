@@ -10,6 +10,7 @@ from skimage import img_as_ubyte
 import matplotlib.pyplot as plt
 import tensorflow.keras as keras
 import keras.backend as K
+import cv2
 
 
 Sky = [128, 128, 128]
@@ -249,3 +250,40 @@ def mean_iou(y_true, y_pred):
             score = tf.identity(score)
         prec.append(score)
     return K.mean(K.stack(prec), axis=0)
+
+
+def compute_metrics(ground,predict,reverse=False):
+    v_rand,v_info=None,None
+    # pred, gt are both numpy arrays, both of which predicts edges as "1"
+    if reverse:
+        pred_label = (predict < 0.5).astype(np.uint8)
+        gt_label = (ground < 0.5).astype(np.uint8)
+    else:
+        pred_label = (predict > 0.5).astype(np.uint8)
+        gt_label = (ground > 0.5).astype(np.uint8)
+    pred_num, pred_out = cv2.connectedComponents(pred_label, connectivity=4)
+    gt_num, gt_out = cv2.connectedComponents(gt_label, connectivity=4)
+    p = np.zeros((pred_num+1, gt_num+1))
+    for i in range(pred_num+1):
+        tmp_mask = (pred_out==i)
+        for j in range(gt_num+1):
+            if i==0 or j==0:
+                p[i][j]=0
+            else:
+                p[i][j] = np.logical_and(tmp_mask, gt_out==j).sum()
+    #normalize
+    tot_sum = p.sum()
+    p = p / tot_sum
+    #marginal distribution
+    s = p.sum(axis=0)
+    t = p.sum(axis=1)
+    #entropy
+    sum_p_log = (p * np.log(p+1e-9)).sum()
+    sum_s_log = (s * np.log(s+1e-9)).sum()
+    sum_t_log = (t * np.log(t+1e-9)).sum()
+    v_info = -2 * (sum_p_log - sum_s_log - sum_t_log) / (sum_s_log  + sum_t_log)
+    sum_p_s = (p*p).sum()
+    sum_s_s = (s*s).sum()
+    sum_t_s = (t*t).sum()
+    v_rand = 2 * sum_p_s / (sum_t_s + sum_s_s)
+    return v_rand,v_info

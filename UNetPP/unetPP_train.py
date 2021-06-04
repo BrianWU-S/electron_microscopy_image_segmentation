@@ -47,14 +47,14 @@ if __name__ == '__main__':
     # handle the history
     hist = model.fit_generator(myGenerator, steps_per_epoch=STEPS, epochs=EPOCHES,
                                callbacks=callbacks_list)
-    visualize_training_results(hist=hist, save_path="../results/UNet/Unet_training", loss_flag=True, acc_flag=True,
+    visualize_training_results(hist=hist, save_path="results/UNet/Unet_training", loss_flag=True, acc_flag=True,
                                lr_flag=True)
     
     # test
     testGene = testGenerator(test_path="../dataset/test_img", num_image=5, target_size=TARGET_SIZE,
                              flag_multi_class=False, as_gray=True)
     results = model.predict_generator(testGene, steps=5, verbose=1)
-    saveResult(save_path="../results/UNet", npyfile=results, flag_multi_class=False, num_class=2)
+    saveResult(save_path="results/UNet", npyfile=results, flag_multi_class=False, num_class=2)
     print("Training time:", time.time() - t1, "s")
     # save the final model
     model.save(filepath=r"../models/UNet/unet_e%i_s_%i_lr_%f.hdf5" % (EPOCHES, STEPS, LR))
