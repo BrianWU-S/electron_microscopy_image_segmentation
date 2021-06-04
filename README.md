@@ -72,7 +72,10 @@ https://sh-tsang.medium.com/review-unet-a-nested-u-net-architecture-biomedical-i
 
 [U-Net++ in medical image segmentation](https://www.yinxiang.com/everhub/note/d01d5753-28f8-4649-94e0-a810e8bee795)
 
+[Main idea of Unet++](https://zhuanlan.zhihu.com/p/44958351)
+
 [What's new in CENet compared with U-Net](https://zhuanlan.zhihu.com/p/273416963)
+
 
 
 ## Requirements
