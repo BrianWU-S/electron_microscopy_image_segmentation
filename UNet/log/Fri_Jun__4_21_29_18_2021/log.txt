@@ -1,0 +1,3 @@
+2021-06-04 21:29:18,215:INFO:=======epoch:15, batch size:1 ========
+2021-06-04 21:29:18,215:INFO:Preparing for dataset and model
+2021-06-04 21:29:21,000:INFO:Start Training and Validation

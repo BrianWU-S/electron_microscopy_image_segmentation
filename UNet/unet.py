@@ -15,9 +15,9 @@ import os
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img,save_img
 from torch.utils.data import DataLoader,Dataset
 from torchvision.transforms import transforms
-from sklearn.model_selection import train_test_split
 
-batch_size=1
+
+batch_size=64
 epochs=15
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 learning_rate=5e-4
@@ -37,20 +37,20 @@ class ISBIdataset(Dataset):
 
     def __len__(self):
         if self.state=="train":
-            return len(self.img_name)*0.9
+            return int(len(self.img_name)*0.9)
         elif self.state=="validation":
-            return len(self.img_name)*0.1
+            return len(self.img_name)-int(len(self.img_name)*0.9)
         else:
             return len(self.img_name)
 
     def __getitem__(self, index):
         if self.state == "validation":
-            img_path = os.path.join(self.img_paths, self.img_name[index +len(self.img_name)*0.9])
-            label_path = os.path.join(self.img_paths, self.label_name[index +len(self.img_name)*0.9])
+            img_path = os.path.join(self.img_paths, self.img_name[index +int(len(self.img_name)*0.9)])
+            label_path = os.path.join(self.img_paths, self.label_name[index +int(len(self.img_name)*0.9)])
         else:
             img_path = os.path.join(self.img_paths, self.img_name[index])
             label_path = os.path.join(self.img_paths, self.label_name[index])
-        img = cv2.imread(img_path)
+        img = cv2.imread(img_path, cv2.COLOR_BGR2GRAY)
         label = cv2.imread(label_path, cv2.COLOR_BGR2GRAY)
         img = img.astype('float32') / 255
         label = label.astype('float32') / 255
@@ -61,7 +61,7 @@ class ISBIdataset(Dataset):
 
 
 def get_logger():
-   filename = 'log/'+time.asctime(time.localtime(time.time())).replace(" ", "_").replace(":", "_")+"/log.txt"
+   filename = os.path.join(log_dir,"log.txt")
    logging.basicConfig(
       filename=filename,
       filemode='w+',
@@ -144,7 +144,7 @@ class UNet(nn.Module):
         super(UNet, self).__init__()
         out_channels=[2**(i+6) for i in range(5)] #[64, 128, 256, 512, 1024]
         #下采样
-        self.d1=DownsampleLayer(3,out_channels[0])#3-64
+        self.d1=DownsampleLayer(1,out_channels[0])#3-64
         self.d2=DownsampleLayer(out_channels[0],out_channels[1])#64-128
         self.d3=DownsampleLayer(out_channels[1],out_channels[2])#128-256
         self.d4=DownsampleLayer(out_channels[2],out_channels[3])#256-512
@@ -161,7 +161,7 @@ class UNet(nn.Module):
             nn.Conv2d(out_channels[0], out_channels[0], kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(out_channels[0]),
             nn.ReLU(),
-            nn.Conv2d(out_channels[0],3,3,1,1),
+            nn.Conv2d(out_channels[0],1,3,1,1),
             nn.Sigmoid(),
             # BCELoss
         )
@@ -237,9 +237,11 @@ def train(model,criterion,optimizer,train_generator,val_generator,epoch):
         loss_val = 0
         start = time.time()
         for i, (x,label) in enumerate(train_generator):
+            x=torch.unsqueeze(x,1)
+            label=torch.unsqueeze(label,1)
             x = x.float().to(device)
             y = model(x)
-            label = Variable(torch.from_numpy(np.array(label)).long()).to(device)
+            label = Variable(torch.from_numpy(np.array(label)).float()).to(device)
             loss = criterion(y, label)
             loss_val += loss.item() * label.size(0)
             optimizer.zero_grad()
