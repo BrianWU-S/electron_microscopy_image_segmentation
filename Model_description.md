@@ -45,7 +45,7 @@ Unet is popular in medical image segmentation and it is often used as a baseline
 
 ## Comparison with U-Net:
 
-<img src="UNetPP/images/unet++.png" style="width:900px;height:500px;">
+<img src="UNetPP/images/Unet++.png" style="width:900px;height:500px;">
 
 Unet++的结构本质上就是往原先Unet的结构中（图中黑色Backbone部分）填充不同层次之间的密集跳跃连接（图中绿色部分）。密集跳跃连接确保所有先验特征图都被累积，并通过每个跳跃路径上的dense卷积块而到达当前节点。这将在多个语义级别生成完整分辨率的特征映射。这时候原先的Unet变成了此结构的一个子集。Unet++采用此结构主要有两个好处：第一个好处就是对于各个深度的特征模型都能有效的提取。在训练的过程中模型通过梯度反向传播自主学习不同深度的特征的重要性，从而达到比Unet更好的特征提取性能。第二个好处是它共享了一个特征提取器，也就是你不需要训练一堆U-Net，而是只训练一个encoder，它的不同层次的特征由不同的decoder路径来还原。这个encoder可以灵活的用各种不同的backbone（如Resnet,VGG16,VGG19等）来代替，泛化性能优异。
 
@@ -59,7 +59,7 @@ Unet++的结构本质上就是往原先Unet的结构中（图中黑色Backbone�
 
 - Unet++的结构使得模型可以被剪枝，从而降低模型的参数量：
 
-  <img src="UNetPP/images/unet++_2.png" style="width:900px;height:500px;">
+  <img src="UNetPP/images/Unet++_2.png" style="width:900px;height:500px;">
 
   上图表明了剪枝的效果：$UNet++L^3$相比$UNet++L^4$剪枝了最右侧的backbone部分。在测试的阶段，由于输入的图像只会前向传播，剪枝掉的部分对前面的输出完全没有影响的；而在训练阶段，因为模型先进行前向传递再进行反向传播，被剪掉的部分会帮助其他部分做权重更新，因此我们只在测试的阶段进行剪枝，在训练的阶段保持原始网络结构。
 
