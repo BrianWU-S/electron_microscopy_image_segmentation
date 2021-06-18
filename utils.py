@@ -41,6 +41,9 @@ def set_GPU_Memory_Limit():
 
 
 def Unet_scheduler(epoch, lr):
+    """
+    learning rate decay
+    """
     if epoch < 2:
         return lr
     elif epoch < 5:
@@ -146,6 +149,9 @@ def geneTrainNpy(image_path, mask_path, flag_multi_class=False, num_class=2, ima
 
 
 def labelVisualize(num_class, color_dict, img):
+    """
+    visualize the label image
+    """
     img = img[:, :, 0] if len(img.shape) == 3 else img
     img_out = np.zeros(img.shape + (3,))
     for i in range(num_class):
@@ -154,6 +160,9 @@ def labelVisualize(num_class, color_dict, img):
 
 
 def saveResult(save_path, npyfile, flag_multi_class=False, num_class=2):
+    """
+    save the visualized result
+    """
     if not os.path.exists(save_path):
         os.mkdir(save_path)
     for i, item in enumerate(npyfile):
@@ -268,7 +277,6 @@ def compute_metrics(y_true, y_pred):
     metrics of V_rand and V_info
     """
     v_rand,v_info=None,None
-    # pred, gt are both numpy arrays, both of which predicts edges as "1"
     pred_label = (y_pred > 0.5).astype(np.uint8)
     gt_label = (y_true > 0.5).astype(np.uint8)
     pred_num, pred_out = cv2.connectedComponents(pred_label, connectivity=4)

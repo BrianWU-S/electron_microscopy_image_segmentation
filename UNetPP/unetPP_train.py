@@ -12,6 +12,7 @@ if __name__ == '__main__':
     BATCH_SIZE = 1
     TARGET_SIZE = (512, 512)
     t1 = time.time()
+    #first setting of data augmentation
     data_gen_args = dict(  # rescale=1. / 255,
         rotation_range=0.2,
         width_shift_range=0.05,
@@ -20,6 +21,7 @@ if __name__ == '__main__':
         zoom_range=0.05,
         horizontal_flip=True,
         fill_mode='constant')
+    #second setting of data augmentation
     data_gen_args_2 = dict(  # rescale=1. / 255,
         rotation_range=20,
         shear_range=0.2,
@@ -30,29 +32,25 @@ if __name__ == '__main__':
         horizontal_flip=True,
         fill_mode='constant',
         cval=0)
+    #generate the configuration
     myGenerator = trainGenerator(batch_size=BATCH_SIZE, train_path='../dataset',
                                  image_folder='train_img',  # set save_to_dir="../dataset/UNet" to view
                                  mask_folder='train_label',
                                  aug_dict=data_gen_args, image_color_mode="grayscale", mask_color_mode="grayscale",
                                  image_save_prefix="img", mask_save_prefix="lb", flag_multi_class=False, num_class=2,
                                  save_to_dir=None, target_size=TARGET_SIZE, seed=1234)
-    model = UNetPlusPlus(deep_supervision=False, pretrained_weights=None, input_size=(512, 512, 1), lr=LR, num_class=1,
-                         bn_axis=3)
+    #define Unet model and monitor the training process
+    model = UNetPlusPlus(deep_supervision=False, pretrained_weights=None, input_size=(512, 512, 1), lr=LR, num_class=1,bn_axis=3)
     callbacks_list = [
-        # ModelCheckpoint('../models/UNet/unet_membrane_best.hdf5', monitor='accuracy', mode='max', verbose=1, save_best_only=True),
-        ModelCheckpoint('../models/UNet/unet_membrane_best.hdf5', monitor='loss', verbose=1,
-                        save_best_only=True),
+        ModelCheckpoint('../models/UNet/unet_membrane_best.hdf5', monitor='loss', verbose=1,save_best_only=True),
         LearningRateScheduler(schedule=Unet_scheduler)
     ]
-    # handle the history
-    hist = model.fit_generator(myGenerator, steps_per_epoch=STEPS, epochs=EPOCHES,
-                               callbacks=callbacks_list)
-    visualize_training_results(hist=hist, save_path="../UNet/Unet_submit/Unet_training", loss_flag=True, acc_flag=True,
-                               lr_flag=True)
+    # handle and visualize the history
+    hist = model.fit_generator(myGenerator, steps_per_epoch=STEPS, epochs=EPOCHES,callbacks=callbacks_list)
+    visualize_training_results(hist=hist, save_path="../UNet/Unet_submit/Unet_training", loss_flag=True, acc_flag=True,lr_flag=True)
     
     # test
-    testGene = testGenerator(test_path="../dataset/test_img", num_image=5, target_size=TARGET_SIZE,
-                             flag_multi_class=False, as_gray=True)
+    testGene = testGenerator(test_path="../dataset/test_img", num_image=5, target_size=TARGET_SIZE,flag_multi_class=False, as_gray=True)
     results = model.predict_generator(testGene, steps=5, verbose=1)
     saveResult(save_path="results/UNet", npyfile=results, flag_multi_class=False, num_class=2)
     print("Training time:", time.time() - t1, "s")

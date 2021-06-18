@@ -7,6 +7,12 @@ from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_a
 def data_augmentation(img_path,label_path):
     """
     do the image augmentation for training data set
+    Operations contain:
+    (1)rotation
+    (2)shear
+    (3)zoom
+    (4)vertical_flip
+    (5)horizontal_flip
     :param img_path: file path of training image
     :param label_path:  file path of training label
     """
