@@ -69,7 +69,6 @@ def adjustData(img, mask, flag_multi_class, num_class):
                                          new_mask.shape[3])) if flag_multi_class else np.reshape(new_mask, (
             new_mask.shape[0] * new_mask.shape[1], new_mask.shape[2]))
         mask = new_mask
-    # elif np.max(img, axis=3) > 1:
     
     else:
         img = img / 255  # can be replace by setting rescale parameter in ImageDataGenerator
@@ -118,8 +117,7 @@ def trainGenerator(batch_size, train_path, image_folder, mask_folder, aug_dict, 
 
 
 def testGenerator(test_path, num_image=30, target_size=(256, 256), flag_multi_class=False, as_gray=True):
-    assert len(glob.glob(os.path.join(test_path,
-                                      "*.png"))) <= num_image, "num_image need to be smaller than test image in current test_path"
+    assert len(glob.glob(os.path.join(test_path,"*.png"))) <= num_image, "num_image need to be smaller than test image in current test_path"
     for i in range(num_image):
         img = io.imread(os.path.join(test_path, "%d.png" % i), as_gray=as_gray)
         img = img / 255
@@ -163,8 +161,10 @@ def saveResult(save_path, npyfile, flag_multi_class=False, num_class=2):
         io.imsave(os.path.join(save_path, "%d_predict.png" % i), img_as_ubyte(img))
 
 
-def visualize_training_results(hist, save_path="../results/UNet/Unet_training", loss_flag=True, acc_flag=True,
-                               lr_flag=False):
+def visualize_training_results(hist, save_path="../results/UNet/Unet_training", loss_flag=True, acc_flag=True,lr_flag=False):
+    """
+    visualize the loss function/acc/lr during the training process
+    """
     print("Training history has key:")
     for key in hist.history:
         print(key)
@@ -197,14 +197,18 @@ def visualize_training_results(hist, save_path="../results/UNet/Unet_training", 
         plt.show()
 
 
-# Training loss: BinaryCrossEntropy
 def bce_dice_loss(y_true, y_pred):
+    """
+    Training loss: BinaryCrossEntropy
+    """
     return 0.5 * keras.losses.binary_crossentropy(y_true, y_pred) - dice_coef(y_true, y_pred)
 
 
-# Training loss: dice loss
 def dice_coef(y_true, y_pred):
-    """Dice coefficient: 2* overlapped area space / total space"""
+    """
+    Training loss: dice loss.
+    Dice coefficient: 2* overlapped area space / total space
+    """
     smooth = 1.
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
@@ -216,8 +220,10 @@ def dice_coef_loss(y_true, y_pred):
     return 1. - dice_coef(y_true, y_pred)
 
 
-# Evaluation metric: Dice
 def compute_dice(im1, im2, empty_score=1.0):
+    """
+    Evaluation metric: Dice
+    """
     im1 = np.asarray(im1 > 0.5).astype(np.bool)
     im2 = np.asarray(im2 > 0.5).astype(np.bool)
     
@@ -233,14 +239,19 @@ def compute_dice(im1, im2, empty_score=1.0):
     return 2. * intersection.sum() / im_sum
 
 
-# Evaluation metric: IoU
 def compute_iou(im1, im2):
+    """
+    Evaluation metric: IoU
+    """
     overlap = (im1 > 0.5) * (im2 > 0.5)
     union = (im1 > 0.5) + (im2 > 0.5)
     return overlap.sum() / float(union.sum())
 
 
 def mean_iou(y_true, y_pred):
+    """
+    metrics of mean iou
+    """
     prec = []
     for t in np.arange(0.5, 1.0, 0.05):
         y_pred_ = tf.to_int32(y_pred > t)
@@ -252,15 +263,14 @@ def mean_iou(y_true, y_pred):
     return K.mean(K.stack(prec), axis=0)
 
 
-def compute_metrics(ground,predict,reverse=False):
+def compute_metrics(y_true, y_pred):
+    """
+    metrics of V_rand and V_info
+    """
     v_rand,v_info=None,None
     # pred, gt are both numpy arrays, both of which predicts edges as "1"
-    if reverse:
-        pred_label = (predict < 0.5).astype(np.uint8)
-        gt_label = (ground < 0.5).astype(np.uint8)
-    else:
-        pred_label = (predict > 0.5).astype(np.uint8)
-        gt_label = (ground > 0.5).astype(np.uint8)
+    pred_label = (y_pred > 0.5).astype(np.uint8)
+    gt_label = (y_true > 0.5).astype(np.uint8)
     pred_num, pred_out = cv2.connectedComponents(pred_label, connectivity=4)
     gt_num, gt_out = cv2.connectedComponents(gt_label, connectivity=4)
     p = np.zeros((pred_num+1, gt_num+1))

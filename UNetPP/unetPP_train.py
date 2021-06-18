@@ -47,7 +47,7 @@ if __name__ == '__main__':
     # handle the history
     hist = model.fit_generator(myGenerator, steps_per_epoch=STEPS, epochs=EPOCHES,
                                callbacks=callbacks_list)
-    visualize_training_results(hist=hist, save_path="../UNet/Unet_training", loss_flag=True, acc_flag=True,
+    visualize_training_results(hist=hist, save_path="../UNet/Unet_submit/Unet_training", loss_flag=True, acc_flag=True,
                                lr_flag=True)
     
     # test

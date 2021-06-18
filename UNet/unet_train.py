@@ -40,19 +40,15 @@ if __name__ == '__main__':
     model = UNet(pretrained_weights=None, input_size=(512, 512, 1), lr=LR)  # we did not use pre-trained model here
     callbacks_list = [
         # ModelCheckpoint('../models/UNet/unet_membrane_best.hdf5', monitor='accuracy', mode='max', verbose=1, save_best_only=True),
-        ModelCheckpoint('../models/UNet/unet_membrane_best.hdf5', monitor='loss', verbose=1,
-                        save_best_only=True),
+        ModelCheckpoint('../models/UNet/unet_membrane_best.hdf5', monitor='loss', verbose=1,save_best_only=True),
         LearningRateScheduler(schedule=Unet_scheduler)
     ]
     # handle the history
-    hist = model.fit_generator(myGenerator, steps_per_epoch=STEPS, epochs=EPOCHES,
-                               callbacks=callbacks_list)
-    visualize_training_results(hist=hist, save_path="Unet_training", loss_flag=True, acc_flag=True,
-                               lr_flag=True)
+    hist = model.fit_generator(myGenerator, steps_per_epoch=STEPS, epochs=EPOCHES,callbacks=callbacks_list)
+    visualize_training_results(hist=hist, save_path="Unet_submit/Unet_training", loss_flag=True, acc_flag=True, lr_flag=True)
     
     # test
-    testGene = testGenerator(test_path="../dataset/test_img", num_image=5, target_size=TARGET_SIZE,
-                             flag_multi_class=False, as_gray=True)
+    testGene = testGenerator(test_path="../dataset/test_img", num_image=5, target_size=TARGET_SIZE,flag_multi_class=False, as_gray=True)
     results = model.predict_generator(testGene, steps=5, verbose=1)
     saveResult(save_path="../UNetPP/results/UNet", npyfile=results, flag_multi_class=False, num_class=2)
     print("Training time:", time.time() - t1, "s")

@@ -20,6 +20,16 @@ def standard_unit(input_tensor, stage, nb_filter, kernel_size=3):
 
 
 def UNetPlusPlus(deep_supervision=False, pretrained_weights=None, input_size=(256, 256, 1), lr=0.0005, num_class=1, bn_axis=3):
+    """
+    definition of Unet++ architecture
+    :param deep_supervision:
+    :param pretrained_weights:
+    :param input_size:
+    :param lr:
+    :param num_class:
+    :param bn_axis:
+    :return:
+    """
     nb_filter = [32, 64, 128, 256, 512]
     img_input = Input(input_size, name='main_input')
     
@@ -87,10 +97,7 @@ def UNetPlusPlus(deep_supervision=False, pretrained_weights=None, input_size=(25
                               padding='same', kernel_regularizer=l2(1e-4))(conv1_5)
     
     if deep_supervision:
-        model = Model(input=img_input, output=[nestnet_output_1,
-                                               nestnet_output_2,
-                                               nestnet_output_3,
-                                               nestnet_output_4])
+        model = Model(input=img_input, output=[nestnet_output_1,nestnet_output_2,nestnet_output_3,nestnet_output_4])
     else:
         model = Model(input=img_input, output=[nestnet_output_4])
         
