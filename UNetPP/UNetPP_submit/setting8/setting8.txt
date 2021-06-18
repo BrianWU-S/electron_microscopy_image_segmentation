@@ -1,0 +1,29 @@
+1. without Deep Supervision
+2. dice_coef_loss as training loss
+
+
+def Unet_scheduler(epoch, lr):
+    if epoch < 3:
+        return lr
+    elif epoch < 10:
+        return 5e-4
+    elif epoch < 16:
+        return 2e-4
+    else:
+        return lr * tf.math.exp(-0.05)
+
+EPOCHES = 30
+    LR = 8e-4
+    STEPS = 300
+    BATCH_SIZE = 1
+    TARGET_SIZE = (512, 512)
+
+data_gen_args_3 = dict(  # rescale=1. / 255,
+        rotation_range=0.2,
+        width_shift_range=0.05,
+        height_shift_range=0.05,
+        shear_range=0.05,
+        zoom_range=0.05,
+        horizontal_flip=True,
+        vertical_flip=True,
+        fill_mode='constant')

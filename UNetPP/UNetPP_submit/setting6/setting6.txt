@@ -1,0 +1,71 @@
+1. without Deep Supervision
+2. dice_coef_loss as training loss
+
+
+def Unet_scheduler(epoch, lr):
+    if epoch < 2:
+        return lr
+    elif epoch < 5:
+        return 5e-4
+    elif epoch < 10:
+        return 2e-4
+    else:
+        return lr * tf.math.exp(-0.05)
+
+
+ EPOCHES = 30
+    LR = 8e-4
+    STEPS = 300
+    BATCH_SIZE = 1
+    TARGET_SIZE = (512, 512)
+
+
+data_gen_args_3 = dict(  # rescale=1. / 255,
+        rotation_range=10,
+        width_shift_range=0.05,
+        height_shift_range=0.05,
+        shear_range=0.05,
+        zoom_range=0.05,
+        horizontal_flip=True,
+        vertical_flip=True,
+        fill_mode='constant')		
+
+--》  最前4个setting augmentation均为：
+data_gen_args = dict(  # rescale=1. / 255,
+        rotation_range=0.2,
+        width_shift_range=0.05,
+        height_shift_range=0.05,
+        shear_range=0.05,
+        zoom_range=0.05,
+        horizontal_flip=True,
+        fill_mode='constant')
+
+setting 5的augmentation为：
+data_gen_args_2 = dict(  # rescale=1. / 255,
+        rotation_range=20,
+        shear_range=0.2,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        zoom_range=0.2,
+        vertical_flip=True,
+        horizontal_flip=True,
+        fill_mode='constant',
+        cval=0)
+
+
+
+setting 4,5,6对比可以看出数据增强的影响。 rotation range 和 zoom_range均会产生空白区域，此时我们用fill_mode='constant'进行填充（用0进行填充），
+当这两个值越大时，填充的区域也就越多，此时模型很谨慎，只对自己把握很大的区域预测为0（即黑色），因此可以看到这三个setting中黑色的边界部分的差别。
+造成的原因为填充区域的loss 反向传播引导模型向predict 0 更准确的方向进行。
+不过rotation range 和 zoom_range大的好处在于产生的图片多样化程度高，因此训练时可以达到的accuracy和meanIOU增高了
+
+setting 1,2的对比可以看出使用不同training loss的影响，setting1 使用bce作为training loss, 而setting 2使用
+dice_coeff_loss ， setting 2 的结果要明显优于setting1，因为bce loss只考虑像素点之间的差异，不考虑target image 和 predict image
+的region 之间是否相似，而后者从直观上更符合我们对 image segmentation的要求：划分边界尽可能的准确。 bce很高有可能是因为边界之内的大部分
+空白区域贡献的准确率，而边界的像素点占的比例小，即使边界点预测表现很差bce也可能很高，因此不宜采用bce作为training loss。
+改进的措施使用weighted bce 作为training loss， 此在setting 9 中体现
+
+
+
+
+

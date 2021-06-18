@@ -1,0 +1,23 @@
+1. without DeepSupervision
+2. bce_loss as training loss
+
+
+
+EPOCHES = 50
+    LR = 8e-4
+    STEPS = 300
+    BATCH_SIZE = 1
+    TARGET_SIZE = (512, 512)
+
+
+def Unet_scheduler(epoch, lr):
+    if epoch < 2:
+        return lr
+    elif epoch < 10:
+        return 5e-4
+    elif epoch < 20:
+        return 2e-4
+    else:
+        return lr * tf.math.exp(-0.05)
+
+

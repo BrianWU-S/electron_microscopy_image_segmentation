@@ -1,0 +1,34 @@
+def Unet_scheduler(epoch, lr):
+    if epoch < 3:
+        return lr
+    elif epoch < 10:
+        return 5e-4
+    elif epoch < 20:
+        return 2e-4
+    else:
+        return lr * tf.math.exp(-0.02)
+
+EPOCHES = 30
+    LR = 8e-4
+    STEPS = 300
+    BATCH_SIZE = 1
+    TARGET_SIZE = (512, 512)
+
+
+    data_gen_args_3 = dict(  # rescale=1. / 255,
+        rotation_range=0.2,
+        width_shift_range=0.05,
+        height_shift_range=0.05,
+        shear_range=0.05,
+        zoom_range=0.05,
+        horizontal_flip=True,
+        vertical_flip=True,
+        fill_mode='constant')
+
+
+model.compile(optimizer=Adam(lr=lr), loss=weighted_BCE_loss,  # bce_dice_loss
+                  metrics=['accuracy', 'binary_crossentropy', tf.keras.metrics.MeanIoU(num_classes=2),dice_coef_loss, bce_dice_loss]
+                  )
+
+--> 
+using weighted BCE loss as training loss, 可以看到与setting1相比（使用bce loss），训练结果有改进，黑色边界部分明显了

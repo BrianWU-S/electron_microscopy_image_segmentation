@@ -1,0 +1,21 @@
+1. without DeepSupervision
+2. dice_coeff_loss as training loss
+
+
+
+EPOCHES = 20
+    LR = 8e-4
+    STEPS = 300
+    BATCH_SIZE = 1
+    TARGET_SIZE = (256, 256)
+
+
+def Unet_scheduler(epoch, lr):
+    if epoch < 2:
+        return lr
+    elif epoch < 10:
+        return 2e-4
+    elif epoch < 20:
+        return 1e-4
+    else:
+        return lr * tf.math.exp(-0.05)
