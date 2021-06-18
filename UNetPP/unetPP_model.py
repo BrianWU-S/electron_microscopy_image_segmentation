@@ -10,7 +10,6 @@ act = "relu"
 
 def standard_unit(input_tensor, stage, nb_filter, kernel_size=3):
     """
-
     :param input_tensor:
     :param stage:
     :param nb_filter:
@@ -29,7 +28,7 @@ def standard_unit(input_tensor, stage, nb_filter, kernel_size=3):
 def UNetPlusPlus(deep_supervision=False, pretrained_weights=None, input_size=(256, 256, 1), lr=0.0005, num_class=1, bn_axis=3):
     """
     definition of Unet++ architecture
-    :param deep_supervision:deep or a single convolutional output layer
+    :param deep_supervision:deep or a single 2D convolutional output layer
     :param pretrained_weights:wethere there is a pretrained model
     :param input_size:size and channel of input figures
     :param lr:initial leanring rate
