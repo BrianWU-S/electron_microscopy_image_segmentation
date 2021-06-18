@@ -11,10 +11,9 @@ kernel_initialization = "he_normal"
 def UNet(pretrained_weights=None, input_size=(256, 256, 1), lr=0.0005):
     """
     definition of Unet architecture
-    :param pretrained_weights:
-    :param input_size:
-    :param lr:
-    :return:
+    :param pretrained_weights: whether there is a pretrained model
+    :param input_size:the size and channel of input figure
+    :param lr: initial learning rate
     """
     inputs = Input(input_size)
     conv1 = Conv2D(64, 3, activation=act, padding=padding, kernel_initializer=kernel_initialization)(inputs)

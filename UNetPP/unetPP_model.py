@@ -9,6 +9,13 @@ act = "relu"
 
 
 def standard_unit(input_tensor, stage, nb_filter, kernel_size=3):
+    """
+
+    :param input_tensor:
+    :param stage:
+    :param nb_filter:
+    :param kernel_size:
+    """
     x = Conv2D(nb_filter, (kernel_size, kernel_size), activation=act, name='conv' + stage + '_1',
                kernel_initializer='he_normal', padding='same', kernel_regularizer=l2(1e-4))(input_tensor)
     x = Dropout(dropout_rate, name='dp' + stage + '_1')(x)
@@ -22,13 +29,12 @@ def standard_unit(input_tensor, stage, nb_filter, kernel_size=3):
 def UNetPlusPlus(deep_supervision=False, pretrained_weights=None, input_size=(256, 256, 1), lr=0.0005, num_class=1, bn_axis=3):
     """
     definition of Unet++ architecture
-    :param deep_supervision:
-    :param pretrained_weights:
-    :param input_size:
-    :param lr:
+    :param deep_supervision:deep or a single convolutional output layer
+    :param pretrained_weights:wethere there is a pretrained model
+    :param input_size:size and channel of input figures
+    :param lr:initial leanring rate
     :param num_class:
-    :param bn_axis:
-    :return:
+    :param bn_axis:axis on batch normalization
     """
     nb_filter = [32, 64, 128, 256, 512]
     img_input = Input(input_size, name='main_input')
