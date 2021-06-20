@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 
 def plot(acc_list,v_rand_list,v_info_list):
+   """Result visualization""""
    x = np.array([0,1,2,3,4])
    a = np.array(acc_list)
    b = np.array(v_rand_list)
@@ -35,15 +36,16 @@ def plot(acc_list,v_rand_list,v_info_list):
 def evaluate():
    TARGET_SIZE = (512, 512)
    masks = groundTruthLabelGenerator(label_path="dataset/test_label", num_label=5, target_size=TARGET_SIZE,
-                                     flag_multi_class=False, as_gray=True)
+                                     flag_multi_class=False, as_gray=True)    # get ground truth label
    results = predictLabelGenerator(label_path=r"UNetPP/UNetPP_submit/setting3", num_label=5,
                                    target_size=TARGET_SIZE,
-                                   flag_multi_class=False, as_gray=True)
+                                   flag_multi_class=False, as_gray=True)      # get predict results
    assert np.shape(masks) == np.shape(results), "Label and predict image didn't have the same shape"
    v_rand_list = []
    v_info_list = []
    acc_list = []
    for img in range(np.shape(results)[0]):
+      """For each test image, calculate the v_rand, v_info metrics by calling the compute_metrics() function """
       v_rand, v_info = compute_metrics(y_true=masks[img], y_pred=results[img])
       pred_label = (results[img] > 0.5).astype(np.uint8)
       gt_label = (masks[img] > 0.5).astype(np.uint8)
