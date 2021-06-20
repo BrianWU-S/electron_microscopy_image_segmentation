@@ -31,6 +31,7 @@ COLOR_DICT = np.array([Sky, Building, Pole, Road, Pavement,
 
 
 def set_GPU_Memory_Limit():
+    """ Set the GPU memory limit for the program when using Tensorflow GPU """
     gpus = tf.config.experimental.list_physical_devices('GPU')
     if gpus:
         try:
@@ -120,6 +121,7 @@ def trainGenerator(batch_size, train_path, image_folder, mask_folder, aug_dict, 
 
 
 def testGenerator(test_path, num_image=30, target_size=(256, 256), flag_multi_class=False, as_gray=True):
+    """Test generator, generate image for testing """
     assert len(glob.glob(os.path.join(test_path,"*.png"))) <= num_image, "num_image need to be smaller than test image in current test_path"
     for i in range(num_image):
         img = io.imread(os.path.join(test_path, "%d.png" % i), as_gray=as_gray)
@@ -283,6 +285,7 @@ def compute_metrics(y_true, y_pred):
     return v_rand,v_info
 
 def groundTruthLabelGenerator(label_path, num_label=30, target_size=(256, 256), flag_multi_class=False, as_gray=True):
+    """Label generator, generate ground truth label for evaluation/test """
     assert len(glob.glob(os.path.join(label_path,
                                       "*.png"))) >= num_label, "num_label need to be smaller than test label in current label_path"
     masks = []
@@ -298,6 +301,7 @@ def groundTruthLabelGenerator(label_path, num_label=30, target_size=(256, 256), 
 
 
 def predictLabelGenerator(label_path, num_label=30, target_size=(256, 256), flag_multi_class=False, as_gray=True):
+    """Label generator, generate predicted label for evaluation/test """
     assert len(glob.glob(os.path.join(label_path,"*.png"))) >= num_label, "num_label need to be smaller than test label in current label_path"
     masks = []
     for i in range(num_label):
