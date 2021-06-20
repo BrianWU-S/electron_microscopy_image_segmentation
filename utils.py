@@ -281,3 +281,29 @@ def compute_metrics(y_true, y_pred):
     sum_t_s = (t*t).sum()
     v_rand = 2 * sum_p_s / (sum_t_s + sum_s_s)
     return v_rand,v_info
+
+def groundTruthLabelGenerator(label_path, num_label=30, target_size=(256, 256), flag_multi_class=False, as_gray=True):
+    assert len(glob.glob(os.path.join(label_path,
+                                      "*.png"))) >= num_label, "num_label need to be smaller than test label in current label_path"
+    masks = []
+    for i in range(num_label):
+        mask = io.imread(os.path.join(label_path, "%d.png" % i), as_gray=as_gray)
+        mask = mask / 255
+        mask[mask > 0.5] = 1
+        mask[mask <= 0.5] = 0
+        mask = trans.resize(mask, target_size)
+        mask = np.reshape(mask, mask.shape + (1,)) if (not flag_multi_class) else mask
+        masks.append(mask)
+    return masks
+
+
+def predictLabelGenerator(label_path, num_label=30, target_size=(256, 256), flag_multi_class=False, as_gray=True):
+    assert len(glob.glob(os.path.join(label_path,"*.png"))) >= num_label, "num_label need to be smaller than test label in current label_path"
+    masks = []
+    for i in range(num_label):
+        mask = io.imread(os.path.join(label_path, "%d_predict.png" % i), as_gray=as_gray)
+        mask = mask / 255       # note: we can't use the threshold method as in groundTruthLabelGenerator()
+        mask = trans.resize(mask, target_size)
+        mask = np.reshape(mask, mask.shape + (1,)) if (not flag_multi_class) else mask
+        masks.append(mask)
+    return masks

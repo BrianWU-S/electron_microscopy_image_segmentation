@@ -41,7 +41,7 @@ if __name__ == '__main__':
     #define the UNet model
     model = UNet(pretrained_weights=None, input_size=(512, 512, 1), lr=LR)  # we did not use pre-trained model here
     callbacks_list = [
-        ModelCheckpoint('../models/UNet/unet_membrane_best.hdf5', monitor='loss', verbose=1,save_best_only=True),
+        ModelCheckpoint('models/unet_membrane_best.hdf5', monitor='loss', verbose=1,save_best_only=True),
         LearningRateScheduler(schedule=Unet_scheduler)
     ]
     # handle and visualize the history
