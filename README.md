@@ -78,7 +78,8 @@ https://sh-tsang.medium.com/review-unet-a-nested-u-net-architecture-biomedical-i
 
 [What's new in CENet compared with U-Net](https://zhuanlan.zhihu.com/p/273416963)
 
-
+# Experiment results and analysis
+Please check **"Electron_microscopy_image_segmentation.pdf"**.
 
 ## Requirements
 
@@ -98,8 +99,5 @@ Shiqu Wu
 Shengyuan Hou
 
 Binghao Yan
-
-# Experiment results and analysis
-Please check **"Electron_microscopy_image_segmentation.pdf"**.
 
 
