@@ -81,7 +81,7 @@ https://sh-tsang.medium.com/review-unet-a-nested-u-net-architecture-biomedical-i
 # Experiment results and analysis
 Please check **"Electron_microscopy_image_segmentation.pdf"**.
 
-## Requirements
+# Requirements
 
 - `python 3.6+`
 - `numpy`
@@ -93,7 +93,7 @@ Please check **"Electron_microscopy_image_segmentation.pdf"**.
 - `os`
 
 
-## Group Members
+# Group Members
 Shiqu Wu
 
 Shengyuan Hou
