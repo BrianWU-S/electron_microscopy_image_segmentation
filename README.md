@@ -93,7 +93,7 @@ Please check **"Electron_microscopy_image_segmentation.pdf"**.
 - `os`
 
 
-# Group Members
+## Group Members
 Shiqu Wu
 
 Shengyuan Hou
