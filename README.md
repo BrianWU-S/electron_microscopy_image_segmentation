@@ -65,6 +65,8 @@ In this task, we implemented
 - [U-Net++](https://arxiv.org/pdf/1807.10165.pdf)
 - [CE-Net](https://arxiv.org/pdf/1903.02740.pdf)
 
+More details about the model are in **"Model_Description.md"** of current repository. 
+
 And here are some useful links for understanding the model:
 
 [Difference between U-Net and U-Net++](
